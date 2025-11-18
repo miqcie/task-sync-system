@@ -1,6 +1,6 @@
 # Task Sync System
 
-> Event-driven task management for ADHD workflows with git-backed coding tasks
+> Simple, ADHD-friendly task management with git-backed coding tasks
 
 ## Problem
 
@@ -10,38 +10,38 @@ Context switching between tools (Claude Code, Notion, Sunsama) makes task captur
 
 ## Solution
 
-**Capture tasks wherever you are, with zero friction:**
+**Use the right tool for each job. No complex sync needed.**
 
 ```bash
-# In Claude Code CLI
-bd create "Fix authentication bug" -l code,urgent
+# Coding tasks → bd (git-backed)
+bd create "Fix authentication bug" -p 0 -l bug,security
 
-# In Notion
-Add task with #code tag → Auto-routes to bd
+# Non-coding tasks → Sunsama/Notion
+Add in Sunsama → Syncs to Notion automatically
 
-# In Sunsama
-Add task → Syncs to Notion → Webhook routes if #code
+# View everything in Claude when needed
+bd ready          # Coding tasks
+/sync-notion      # Non-coding tasks
 ```
 
-**The system handles routing automatically.**
+**Simple. Separate systems. Unified view when you need it.**
 
 ## Architecture
 
-See [docs/architecture.md](docs/architecture.md) for full architectural diagrams.
+See [docs/simplified-architecture.md](docs/simplified-architecture.md) for the full explanation.
 
-### Key Components
+### Two Systems, Two Purposes
 
-1. **bd (beads)** - Git-backed issue tracker for coding tasks
-2. **Notion Webhooks** - Real-time event sync (future)
-3. **Sunsama** - Central hub for daily planning
-4. **GitHub Actions** - Auto-create public issues (future)
+1. **bd (beads)** - Git-backed coding tasks (bugs, features, refactoring)
+2. **Sunsama + Notion** - Non-coding tasks (planning, email, meetings)
+3. **Notion MCP** - Query Notion from Claude when needed
 
 ### Data Flow
 
 ```
-Coding tasks:     Claude → bd → .beads/issues.jsonl → Git → GitHub Issues
-Non-coding tasks: Sunsama → Notion (stays there)
-Hybrid tasks:     Notion (#code tag) → Webhook → bd
+Coding tasks:     Claude → bd → .beads/beads.left.jsonl → Git → GitHub Issues
+Non-coding tasks: Sunsama ↔ Notion (native integration)
+Unified view:     bd ready + Notion MCP → Combined in Claude
 ```
 
 ## Quick Start
@@ -77,25 +77,23 @@ GitHub Action auto-creates public issue (once configured).
 ```
 task-sync-system/
 ├── .beads/
-│   ├── beads.db         # SQLite cache (gitignored)
-│   └── issues.jsonl     # Source of truth (committed)
+│   ├── beads.db              # SQLite cache (gitignored)
+│   └── beads.left.jsonl      # Source of truth (committed)
 ├── .github/
 │   └── workflows/
-│       └── sync-to-issues.yml  # Auto-create GitHub Issues
+│       └── sync-to-issues.yml  # Auto-create GitHub Issues (optional)
 ├── docs/
-│   ├── architecture.md  # Mermaid diagrams
-│   └── webhook-security.md  # Security considerations
-├── src/
-│   └── webhook-listener.js  # Notion webhook handler
+│   ├── simplified-architecture.md  # Current architecture
+│   └── architecture.md            # Original (complex) design
 └── README.md
 ```
 
-## Implementation Phases
+## Implementation Status
 
-- [x] **Phase 1**: Project setup + bd initialization
-- [ ] **Phase 2**: Notion webhook listener (Bun.sh)
-- [ ] **Phase 3**: GitHub Action for public issues
-- [ ] **Phase 4**: Claude Code integration
+- [x] **Phase 1**: bd setup + git hooks ✓
+- [x] **Keep existing**: Notion sync (startup hook) ✓
+- [ ] **Optional**: GitHub Action for public issues
+- [x] **Simplified**: Removed webhook complexity ✓
 
 ## Commands
 
@@ -116,8 +114,8 @@ bd dep tree bd-a1b2                     # Visualize dependencies
 ### Git Workflow
 
 ```bash
-# bd auto-exports to .beads/issues.jsonl after 5 seconds
-git add .beads/issues.jsonl
+# bd auto-exports to .beads/beads.left.jsonl after 5 seconds
+git add .beads/beads.left.jsonl
 git commit -m "Update tasks"
 git push
 
@@ -132,18 +130,18 @@ git push
 |-----------|--------|-------|
 | `bd create` | ~50 | Local, no LLM |
 | `bd ready` | ~200 | Local query |
-| Notion webhook | ~0 | Background |
-| Notion MCP query | ~3K | On demand |
+| `/sync-notion` | ~3K | When you need it |
+| Notion MCP query | ~2-5K | Ad-hoc queries |
 
-**Total**: ~3,500 tokens/session vs 60K-300K for vanilla MCP sync.
+**Total**: 3-8K tokens/session vs 60K-300K for complex sync.
 
 ## Why This Architecture?
 
-1. **ADHD-friendly**: Capture in any tool, no context switching
-2. **Git-backed**: Coding tasks version-controlled
-3. **Build in public**: Auto-sync to GitHub Issues
+1. **Simple**: Two separate systems, no complex sync
+2. **ADHD-friendly**: Use the tool you're already in
+3. **Git-backed**: Coding tasks version-controlled
 4. **Token-efficient**: 20x better than naive MCP
-5. **Event-driven**: Real-time sync, no polling
+5. **Maintainable**: No webhooks, no servers to run
 
 ## Contributing
 
@@ -157,4 +155,4 @@ MIT
 
 **Author**: Chris McConnell
 **Created**: 2025-01-18
-**Status**: Phase 1 complete, Phase 2 in progress
+**Status**: Simplified architecture complete, ready to use
