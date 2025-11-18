@@ -1,0 +1,25 @@
+# bd (beads) - Only commit JSONL, not SQLite
+.beads/*.db
+.beads/*.db-*
+.beads/tmp/
+
+# Node.js / Bun
+node_modules/
+*.log
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+tmp/
+temp/
+*.tmp
